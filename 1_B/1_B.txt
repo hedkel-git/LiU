@@ -1,0 +1,22 @@
+longest increasing subsequence
+
+numbers: n_j
+
+OPT(...) = "return the length (number) of the maximum increasing subsequence"
+
+OPT(0) = 0
+OPT(1) = 1
+OPT(2) = max{ OPT(p(2)) + 1, OPT(2-1)}
+
+where p(j) returns the index of the closest smaller number than the current number
+
+general formula:
+
+
+OPT(0) = 0
+OPT(j) = max{ OPT(p(j)) + 1, OPT(j-1) }
+
+    where p(j) returns the index of the closest smaller number than the current number
+
+can p(j) be optimized?
+how to retrieve the indices?

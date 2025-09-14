@@ -1,0 +1,11 @@
+Hiding chickens
+
+
+
+general idea:
+
+We do not want to walk to the furthest points early on
+because walking back takes longer.
+
+To minimize the distance, we can travel to the closer points
+first...
