@@ -1,151 +1,103 @@
-
 import java.util.*;
 
 public class Main {
-    
-/*    
-General idea:
+    /*
+    General idea:
 
-OPT(1) = 1
-OPT(j) = max{ OPT(p(j)) + 1, OPT(j-1) }
+    S = {s_1, s_2, ..., s_n}
 
-where p(j) returns the index of the closest smaller number than the current number (to the left)
+    OPT(1) = 1
+    OPT(j) = max{
+                OPT(j-1),
+                max{ OPT(i) | i <- [(j-1)..1], s_i < s_j AND s_i is in subsequence} + 1
+             }
 
-To retrieve the sub-sequence length AND indices, we can store indices in opt instead of 
-the local maximum lengths. When we backtrack, we can get the indices again.
-
-alternative: store the indices
-
-
-*/
+    To retrieve the indices of the sub-sequence, we can store indices in opt as well.
+    */
     private record Tuple(int prevIndex, boolean indexIsInSubSequence, int maximumLength) {}
-    
 
     public static void main(String[] args) {
-	longestSubSequence(new int[] {5, 19, 5, 81, 50, 28, 29, 1, 83, 23});
+        kattis();
     }
 
     public static void kattis() {
         Kattio io = new Kattio(System.in, System.out);
-        
+
         while (io.hasMoreTokens()) {
             final int[] sequence = new int[io.getInt()];
             final Tuple[] opt    = new Tuple[sequence.length];
             
-            
-            //OPT(0) = 0
-            opt[0] = new Tuple(0, true, 1);
+            //OPT(1) = 1
+            opt[0] = new Tuple(-1, true, 1);
             sequence[0] = io.getInt();
 
             for(int i = 1; i < sequence.length; i++) {
                 sequence[i] = io.getInt();
 
-		int j = findClosestSmallerNumber(sequence, i);
-
                 int optChoice1 = opt[i-1].maximumLength;
                 int optChoice2 = 1;
-                                
-                if (j != -1) {
-		    optChoice2 += opt[j].maximumLength;
-		}
+
+                int j = i-1;
+                int currMaxIndex = -1;
+
+                //search for the closest number that is part of 'a' subsequence
+                while(j >= 0) {
+                    if (opt[j].indexIsInSubSequence && sequence[j] < sequence[i]) {
+                        currMaxIndex = j;
+                        j--;
+                        break;
+                    }
+                    j--;
+                }
                 
-                //OPT(j) = max{ OPT(j-1), OPT(p(j)) + 1 }
+                //continue search to find maximal subsequence
+                while (j >= 0) {
+                    if (opt[j].indexIsInSubSequence && sequence[j] < sequence[i]) {
+                        if (opt[currMaxIndex].maximumLength < opt[j].maximumLength) {
+                            currMaxIndex = j;
+                        }
+                    }
+                    j--;
+                }
+                
+                if (currMaxIndex != -1) {
+                    optChoice2 += opt[currMaxIndex].maximumLength;
+                }
+                
+                //OPT(j) = max{ OPT(j-1), max{...} + 1 }
                 if (optChoice1 > optChoice2) {
                     opt[i] = new Tuple(i-1, false, optChoice1);
                 } else {
-                    opt[i] = new Tuple(j, true, optChoice2);
+                    opt[i] = new Tuple(currMaxIndex, true, optChoice2);
                 }
-                
-                
             }
-            
-            //retrieve indices
-            List<Integer> indices = new ArrayList<>();
-            
-            
-            int i = sequence.length-1;
-            while (i > 0) {
-                if (opt[i].indexIsInSubSequence) {
-                    indices.add(i);
-                }
 
-                i = opt[i].prevIndex;
+            /*
+            System.out.println(Arrays.toString(sequence));
+            for (int x = 0; x < sequence.length; x++) {
+                System.out.println(opt[x] + "\t" + sequence[x] + "\t\t" + x);
             }
-            
-            
-            System.out.println(opt[sequence.length-1].maximumLength);
-            for(int j = indices.size()-1; j >= 0; j--) {
-                System.out.print(indices.get(j) + " ");
-            }
-        }
-        
-        io.close();
-    }
-    
-    public static void longestSubSequence(final int[] sequence) {
-	final Tuple[] opt    = new Tuple[sequence.length];
-            
-            
-            //OPT(0) = 0
-            opt[0] = new Tuple(0, true, 1);
-
-            for(int i = 1; i < sequence.length; i++) {
-
-		int j = findClosestSmallerNumber(sequence, i);
-
-                int optChoice1 = opt[i-1].maximumLength;
-                int optChoice2 = 1;
-                                
-                if (j != -1) {
-		    optChoice2 += opt[j].maximumLength;
-		}
-                
-                //OPT(j) = max{ OPT(j-1), OPT(p(j)) + 1 }
-                if (optChoice1 > optChoice2) {
-                    opt[i] = new Tuple(i-1, false, optChoice1);
-                } else {
-                    opt[i] = new Tuple(j, true, optChoice2);
-                }
-                
-                
-            }
-            
-	System.out.println(Arrays.toString(sequence));
-	System.out.println(Arrays.toString(opt));
+            System.out.println();
+             */
 
             //retrieve indices
             List<Integer> indices = new ArrayList<>();
-            
-            
+
             int i = sequence.length-1;
             while (i >= 0) {
                 if (opt[i].indexIsInSubSequence) {
                     indices.add(i);
                 }
-
-
-		if (i == opt[i].prevIndex) break;
                 i = opt[i].prevIndex;
-
             }
-            
-            
+
             System.out.println(opt[sequence.length-1].maximumLength);
             for(int j = indices.size()-1; j >= 0; j--) {
                 System.out.print(indices.get(j) + " ");
             }
-    }
-
-    public static int findClosestSmallerNumber(int[] arr, int j) {
-        final int value = arr[j];
-        j--;
-
-        while (j >= 0) {
-            if (arr[j] < value) return j;
-            j--;
+            System.out.print('\n');
         }
-        
-        //could not find a smaller element
-        return -1;
+
+        io.close();
     }
 }
